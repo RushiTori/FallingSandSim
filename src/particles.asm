@@ -105,7 +105,55 @@ func(static, update_sand)
 		mov  rsi, r8
 		sub  rsi, SIM_PIXELS_WIDTH
 		call swap_particles
+		jmp  .end
 	.skip_down:
+
+	cmp rdi, 0
+	je  .skip_down_left
+
+	.gen_rand:
+		rdrand ax
+		jnc    .gen_rand
+		and    al, 1
+		jz     .skip_down_left
+
+	dec  rdi
+	dec  r8
+	call get_particle_type
+
+	cmp rax, PARTICLE_EMPTY
+	je  .go_down_left
+	cmp rax, PARTICLE_WATER
+	jne .skip_down_left
+
+	.go_down_left:
+		mov  rdi, r8
+		mov  rsi, r8
+		sub  rsi, SIM_PIXELS_WIDTH
+		inc  rsi
+		call swap_particles
+		jmp  .end
+	.skip_down_left:
+
+	cmp rdi, rdx
+	jae .skip_down_right
+
+	inc  rdi
+	inc  r8
+	call get_particle_type
+
+	cmp rax, PARTICLE_EMPTY
+	je  .go_down_right
+	cmp rax, PARTICLE_WATER
+	jne .skip_down_right
+
+	.go_down_right:
+		mov  rdi, r8
+		mov  rsi, r8
+		sub  rsi, SIM_PIXELS_WIDTH
+		dec  rsi
+		call swap_particles
+	.skip_down_right:
 
 	.end:
 	ret
@@ -114,6 +162,8 @@ func(static, update_sand)
 ; void init_particles(void);
 func(global, init_particles)
 	lea rdi, [particles]
+	;add rdi, sizeof(Particle)
+	;add rdi, sizeof(Particle)
 	mov ecx, uint32_p [simulation_width]
 	.loop_:
 		rdrand eax
