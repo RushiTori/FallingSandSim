@@ -23,11 +23,11 @@ global  particle_colors: data
 
 particle_update_calls:
 global particle_update_calls: data
-	dq no_update   ; PARTICLE_EMPTY
-	dq no_update   ; PARTICLE_SOLID_WALL
-	dq update_sand ; PARTICLE_SAND
-	dq no_update   ; PARTICLE_WATER
-	dq no_update   ; PARTICLE_TYPE_COUNT
+	dq no_update    ; PARTICLE_EMPTY
+	dq no_update    ; PARTICLE_SOLID_WALL
+	dq update_sand  ; PARTICLE_SAND
+	dq update_water ; PARTICLE_WATER
+	dq no_update    ; PARTICLE_TYPE_COUNT
 
 section      .text
 
@@ -154,6 +154,77 @@ func(static, update_sand)
 		dec  rsi
 		call swap_particles
 	.skip_down_right:
+
+	.end:
+	ret
+
+; Tries to go down, if it can't, tries to go left or right
+; void update_water(uint64_t x, uint64_t y, uint64_t width, uint64_t height, uint64_t idx);
+func(static, update_water)
+	cmp rsi, rcx
+	jae .skip_down
+
+	inc  rsi
+	add  r8, SIM_PARTICLES_WIDTH
+	call get_particle_type
+
+	cmp rax, PARTICLE_EMPTY
+	jne .skip_down
+
+	.go_down:
+		mov  rdi, r8
+		mov  rsi, r8
+		sub  rsi, SIM_PARTICLES_WIDTH
+		call swap_particles
+		jmp  .end
+	.skip_down:
+
+
+	dec rsi
+	sub r8, SIM_PARTICLES_WIDTH
+
+	cmp rdi, 0
+	je  .skip_left
+
+	.gen_rand:
+		rdrand ax
+		jnc    .gen_rand
+		and    al, 1
+		jz     .skip_left
+
+	dec  rdi
+	dec  r8
+	call get_particle_type
+
+	cmp rax, PARTICLE_EMPTY
+	jne .skip_left
+
+	.go_left:
+		mov  rdi, r8
+		mov  rsi, r8
+		inc  rsi
+		call swap_particles
+		jmp  .end
+	.skip_left:
+
+
+
+	cmp rdi, rdx
+	jae .skip_right
+
+	inc  rdi
+	inc  r8
+	call get_particle_type
+
+	cmp rax, PARTICLE_EMPTY
+	jne .skip_right
+
+	.go_right:
+		mov  rdi, r8
+		mov  rsi, r8
+		dec  rsi
+		call swap_particles
+	.skip_right:
 
 	.end:
 	ret
