@@ -71,10 +71,81 @@ func(global, free_simulation)
 	add rsp, 24
 	ret
 
+; Updates the simulation
+; void update_simulation(void);
+func(global, update_simulation)
+	push rbx ; idx
+	push r12 ; x
+	push r13 ; width
+	push r14 ; y
+	push r15 ; height
+
+	xor r13, r13
+	xor r15, r15
+
+	mov r13d, uint32_p [simulation_width]
+	mov r15d, uint32_p [simulation_height]
+
+	mov rax, SIM_PIXELS_WIDTH
+	mul r15
+	sub rax, SIM_PIXELS_WIDTH
+	mov rbx, rax
+
+	mov r14, r15
+	.update_loop_y:
+		dec r14
+		xor r12, r12
+		.update_loop_x:
+			mov  rdi, r12
+			mov  rsi, r14
+			mov  rdx, r13
+			mov  rcx, r15
+			mov  r8,  rbx
+			call get_particle_type
+
+			lea  r9,  [particle_update_calls]
+			shl  rax, 3
+			add  r9,  rax
+			call pointer_p [r9]
+
+			inc rbx
+			inc r12
+			cmp r12, r13
+			jb  .update_loop_x
+		sub rbx, r13
+		sub rbx, SIM_PIXELS_WIDTH
+
+		cmp r14, 0
+		jnz .update_loop_y
+
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop rbx
+	ret
+
 ; Renders the simulation based on the pixels and width/height
 ; void render_simulation(void);
 func(global, render_simulation)
 	sub rsp, 24
+	
+	lea rdi, [simulation_pixels]
+	lea rsi, [particles]
+	mov rcx, SIM_PARTICLES_COUNT
+
+	lea r9, [particle_colors]
+	.pixels_loop:
+		xor rax,           rax
+		mov al,            uint8_p [rsi + Particle.type]
+		shl rax,           2
+		add rax,           r9
+		mov eax,           color_p [rax]
+		mov color_p [rdi], eax
+
+		add  rdi, sizeof(color_s)
+		add  rsi, sizeof(Particle)
+		loop .pixels_loop
 
 	mov    eax,         dword [sim_pixels_tex]
 	movups xmm0,        [sim_pixels_tex + 4]

@@ -5,15 +5,29 @@ default      rel
 
 section      .text
 
+func(static, add_sand)
+	lea rdi, [particles]
+	mov ecx, uint32_p [simulation_width]
+	.loop_:
+		rdrand eax
+		jnc    .loop_
+		and    al, 1
+		jz     .skip_sand
+			mov uint8_p [rdi + Particle.type], PARTICLE_SAND
+		.skip_sand:
+		add  rdi, sizeof(Particle)
+		loop .loop_
+	ret
+
 func(static, update_game)
 	sub  rsp, 8
 	mov  rdi, MOUSE_BUTTON_LEFT
 	call IsMouseButtonPressed
 	cmp  al,  false
 	je   .skip_add_sand
-		call init_particles
+		call add_sand
 	.skip_add_sand:
-	call update_particles
+	call update_simulation
 
 	add rsp, 8
 	ret
@@ -39,7 +53,7 @@ func(global, _start)
 	call setup_program
 
 	call init_simulation
-	call init_particles
+	call add_sand
 
 	.game_loop:
 		call WindowShouldClose

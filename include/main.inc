@@ -2,6 +2,6 @@
 %define MAIN_INC
 
 %include "setup.inc"
-%include "particles.inc"
+%include "simulation.inc"
 
 %endif ; MAIN_INC

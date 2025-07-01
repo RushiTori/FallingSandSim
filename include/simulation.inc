@@ -1,8 +1,7 @@
 %ifndef SIMULATION_INC
 %define SIMULATION_INC
 
-%include "raylib.inc"
-%include "std.inc"
+%include "particles.inc"
 
 SIM_PIXELS_WIDTH  equ 1920
 SIM_PIXELS_HEIGHT equ 1080
@@ -26,6 +25,10 @@ extern init_simulation
 ; Frees the states initialized by 'init_simulation'
 ; void free_simulation(void);
 extern free_simulation
+
+; Updates the simulation
+; void update_simulation(void);
+extern update_simulation
 
 ; Renders the simulation based on the pixels and width/height
 ; void render_simulation(void);
