@@ -1,0 +1,14 @@
+TODO | More particle types/behaviour !!!
+	Sand:
+		(done) Make it fall down
+		(todo) Make it fall down right or down left if it can't fall down
+
+	Water:
+		(todo) Make it fall down
+		(todo) Make it go right or left if it can't go down
+
+TODO | Have a way to place particles and choose the type of what you place
+
+TODO | Add Save to file and Load from file
+
+TODO | Add a way to modify the color palette
