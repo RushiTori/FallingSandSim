@@ -34,4 +34,9 @@ extern update_simulation
 ; void render_simulation(void);
 extern render_simulation
 
+; Returns via RDX:RAX the particle position equivalent to x,y
+; typedef struct Vec2u64 { uint64_t px, py; } Vec2u64;
+; Vec2u64 get_screen_to_particle_pos(uint64_t x, uint64_t y);
+extern get_screen_to_particle_pos
+
 %endif ; SIMULATION_INC

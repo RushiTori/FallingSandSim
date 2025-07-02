@@ -7,7 +7,7 @@ section      .text
 
 func(static, gen_walls)
 	lea rdi, [particles]
-	mov rcx, SIM_PARTICLES_COUNT
+	mov rcx, SIM_PARTICLES_COUNT/2
 
 	.pixels_loop:
 		rdrand ax
@@ -64,6 +64,31 @@ func(static, update_game)
 	je   .skip_add_water
 		call add_water
 	.skip_add_water:
+
+	mov  rdi, KEY_SPACE
+	call IsKeyDown
+	cmp  al,  false
+	je   .skip_place_sand
+		push r12
+		sub  rsp, 8
+		call GetMouseX
+		mov  r12, rax
+		call GetMouseY
+		mov  rdi, r12
+		mov  rsi, rax
+		call get_screen_to_particle_pos
+		add  rsp, 8
+		pop  r12
+
+		mov  rax, rdi
+		mov  rax, SIM_PARTICLES_WIDTH
+		mul  rdx
+		add  rdi, rax
+		mov  rsi, PARTICLE_SAND
+		call place_particle
+		
+	.skip_place_sand:
+
 
 	call update_simulation
 

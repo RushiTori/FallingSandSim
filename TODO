@@ -8,6 +8,17 @@ TODO | More particle types/behaviour !!!
 		(done) Make it go right or left if it can't go down
 
 TODO | Have a way to place particles and choose the type of what you place
+	(done) Place a particle at mouse position
+	(todo) Choose the type of particle to place
+	(todo) Make the "brush" bigger/add a way to change brush size
+	(todo) Add a ghost of the particles to-be-placed
+
+TODO | Add more brush types
+	(todo) diamond
+	(todo) square
+	(todo) circle
+	(todo) selection
+	(todo) bucket
 
 TODO | Add Save to file and Load from file
 

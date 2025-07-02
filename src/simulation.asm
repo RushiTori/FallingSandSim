@@ -191,3 +191,34 @@ func(global, render_simulation)
 
 	add rsp, 24
 	ret
+
+; Returns via RDX:RAX the particle position equivalent to x,y
+; typedef struct Vec2u64 { uint64_t px, py; } Vec2u64;
+; Vec2u64 get_screen_to_particle_pos(uint64_t x, uint64_t y);
+func(global, get_screen_to_particle_pos)
+	sub  rsp, 8
+	push rsi
+	push rdi
+	call GetScreenWidth
+	mov  ecx, uint32_p [simulation_width]
+	xor  rdx, rdx
+	div  ecx
+	mov  ecx, eax
+	pop  rax
+	xor  rdx, rdx
+	div  ecx
+	push rax
+
+	call GetScreenHeight
+	pop  rdi
+	mov  ecx, uint32_p [simulation_height]
+	xor  rdx, rdx
+	div  ecx
+	mov  ecx, eax
+	pop  rax
+	xor  rdx, rdx
+	div  ecx
+	mov  rdx, rax
+	mov  rax, rdi
+	add  rsp, 8
+	ret
