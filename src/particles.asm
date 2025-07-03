@@ -19,7 +19,7 @@ global  particle_colors: data
 	dd COLOR_GRAY      ; PARTICLE_SOLID_WALL
 	dd COLOR_YELLOW    ; PARTICLE_SAND
 	dd COLOR_BLUE      ; PARTICLE_WATER
-	dd COLOR_LIME      ; PARTICLE_TYPE_COUNT
+	dd COLOR_BLANK     ; PARTICLE_TYPE_COUNT
 
 particle_update_calls:
 global particle_update_calls: data

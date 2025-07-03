@@ -175,18 +175,6 @@ func(global, render_simulation)
 	mov    dword [rsp], eax
 	movups [rsp + 4],   xmm0
 
-	; mov    eax,         dword [sim_pixels_tex]
-	; movups xmm0,        [sim_pixels_tex + 4]
-	; mov    dword [rsp], eax
-	; movups [rsp + 4],   xmm0
-	; xor rdi, rdi
-	; xor rsi, rsi
-	; mov rdx, COLOR_WHITE
-	; call DrawTexture
-
-	; Draw a part of a texture defined by a rectangle with 'pro' parameters
-	; void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint);
-
 	call DrawTexturePro
 
 	add rsp, 24

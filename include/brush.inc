@@ -31,6 +31,10 @@ extern set_brush_type
 ; void set_brush_particle_type(uint8_t type);
 extern set_brush_particle_type
 
+; Initializes the brush type as DIAMOND, brush particle as SAND and brush size as 3
+; void init_brush(void);
+extern init_brush
+
 ; void update_brush(void);
 extern update_brush
 

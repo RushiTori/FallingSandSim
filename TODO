@@ -11,7 +11,7 @@ TODO | Have a way to place particles and choose the type of what you place
 	(done) Place a particle at mouse position
 	(done) Choose the type of particle to place
 	(todo) Make the "brush" bigger/add a way to change brush size
-	(todo) Add a ghost of the particles to-be-placed
+	(done) Add a ghost of the particles to-be-placed
 
 TODO | Add more brush types
 	(done) diamond

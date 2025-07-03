@@ -5,8 +5,18 @@ default rel
 
 section .rodata
 
+ghost_tex_img:
+static  ghost_tex_img: data
+	istruc Image
+		at .data,    dq ghost_tex_buffer
+		at .width,   dd SIM_PIXELS_WIDTH
+		at .height,  dd SIM_PIXELS_HEIGHT
+		at .mipmaps, dd 1
+		at .format,  dd PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+	iend
+
 memset_pattern:
-static  memset_pattern: data
+static memset_pattern: data
 	db PARTICLE_TYPE_COUNT
 	db PARTICLE_TYPE_COUNT
 	db PARTICLE_TYPE_COUNT
@@ -26,28 +36,6 @@ static  memset_pattern: data
 	db PARTICLE_TYPE_COUNT
 	db PARTICLE_TYPE_COUNT
 	db PARTICLE_TYPE_COUNT
-
-fuck_pattern:
-static fuck_pattern: data
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
-	db PARTICLE_SAND
 
 brush_call_table:
 static brush_call_table: data
@@ -60,11 +48,13 @@ static brush_call_table: data
 
 section .bss
 
-ghost_particles:
-static  ghost_particles: data
-	resb sizeof(uint8_s) * SIM_PARTICLES_COUNT
-ghost_particles_size  equ $ - ghost_particles
-ghost_particles_count equ ghost_particles_size / sizeof(uint8_s)
+ghost_tex:
+static  ghost_tex: data
+	resb sizeof(Texture)
+
+res_array(static, color_t, ghost_tex_buffer, SIM_PARTICLES_COUNT)
+
+res_array(static, uint8_t, ghost_particles, SIM_PARTICLES_COUNT)
 
 res(static,  uint64_t, ghost_start_x)
 res(static,  uint64_t, ghost_start_y)
@@ -264,6 +254,23 @@ func(global, set_brush_particle_type)
 	mov uint8_p [brush_particle_type], dil
 	ret
 
+; Initializes the brush type as DIAMOND, brush particle as SAND and brush size as 3
+; void init_brush(void);
+func(global, init_brush)
+	mov uint32_p [brush_size],         3
+	mov uint8_p [brush_type],          BRUSH_DIAMOND
+	mov uint8_p [brush_particle_type], PARTICLE_SAND
+
+	sub    rsp,         8 + 32
+	mov    rax,         qword [ghost_tex_img]
+	movups xmm0,        [ghost_tex_img + 8]
+	mov    qword [rsp], rax
+	movups [rsp + 8],   xmm0
+	lea    rdi,         [ghost_tex]
+	call   LoadTextureFromImage
+	add    rsp,         8 + 32
+	ret
+
 ; void update_brush(void);
 func(global, update_brush)
 	mov    uint64_p [ghost_start_x], SIM_PARTICLES_WIDTH
@@ -311,4 +318,58 @@ func(global, update_brush)
 
 ; void render_brush(void);
 func(global, render_brush)
+	sub rsp, 24
+	
+	lea rdi, [ghost_tex_buffer]
+	lea rsi, [ghost_particles]
+	mov rcx, SIM_PARTICLES_COUNT
+
+	lea r9, [particle_colors]
+	.pixels_loop:
+		xor rax, rax
+		mov al,  uint8_p [rsi]
+		shl rax, 2
+		add rax, r9
+		mov eax, color_p [rax]
+		
+		or  eax, A_MASK
+		xor eax, A_MASK
+		or  eax, 0x32 << A_LSHIFT
+
+		mov color_p [rdi], eax
+
+		add  rdi, sizeof(color_s)
+		inc  rsi
+		loop .pixels_loop
+
+	mov    eax,         dword [ghost_tex]
+	movups xmm0,        [ghost_tex + 4]
+	mov    dword [rsp], eax
+	movups [rsp + 4],   xmm0
+
+	lea  rdi, [ghost_tex_buffer]
+	call UpdateTexture
+
+	call GetScreenWidth
+	mov  uint32_p [rsp],                    eax
+	call GetScreenHeight
+	mov  uint32_p [rsp + sizeof(uint32_s)], eax
+
+	xorps    xmm0, xmm0
+	cvtpi2ps xmm1, qword [simulation_width]
+	xorps    xmm2, xmm2
+	cvtpi2ps xmm3, qword [rsp]
+	xorps    xmm4, xmm4
+	xorps    xmm5, xmm5
+
+	mov rdi, COLOR_WHITE
+
+	mov    eax,         dword [ghost_tex]
+	movups xmm0,        [ghost_tex + 4]
+	mov    dword [rsp], eax
+	movups [rsp + 4],   xmm0
+
+	call DrawTexturePro
+
+	add rsp, 24
 	ret

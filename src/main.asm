@@ -56,6 +56,8 @@ func(static, render_game)
 	call ClearBackground
 
 	call render_simulation
+	
+	call render_brush
 
 	call EndDrawing
 
@@ -68,6 +70,7 @@ func(global, _start)
 	call setup_program
 
 	call init_simulation
+	call init_brush
 	call gen_walls
 
 	mov  rdi, 3
