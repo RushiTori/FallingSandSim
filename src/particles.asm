@@ -7,7 +7,7 @@ section .bss
 
 particles:
 global  particles: data
-	resb sizeof(Particle) * SIM_PARTICLES_WIDTH * SIM_PARTICLES_HEIGHT
+	resb sizeof(Particle) * SIM_PARTICLES_COUNT
 particles_size  equ $ - particles
 particles_count equ particles_size / sizeof(Particle)
 

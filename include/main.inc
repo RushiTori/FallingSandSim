@@ -3,5 +3,6 @@
 
 %include "setup.inc"
 %include "simulation.inc"
+%include "brush.inc"
 
 %endif ; MAIN_INC

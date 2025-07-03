@@ -7,7 +7,7 @@ section      .text
 
 func(static, gen_walls)
 	lea rdi, [particles]
-	mov rcx, SIM_PARTICLES_COUNT/2
+	mov rcx, SIM_PARTICLES_WIDTH * 100
 
 	.pixels_loop:
 		rdrand ax
@@ -20,76 +20,28 @@ func(static, gen_walls)
 		loop .pixels_loop
 	ret
 
-func(static, add_sand)
-	lea rdi, [particles]
-	mov ecx, uint32_p [simulation_width]
-	.loop_:
-		rdrand eax
-		jnc    .loop_
-		and    al, 1
-		jz     .skip_sand
-			mov uint8_p [rdi + Particle.type], PARTICLE_SAND
-		.skip_sand:
-		add  rdi, sizeof(Particle)
-		loop .loop_
-	ret
+%macro add_key_pressed_action_base 3
+	mov  rdi, %1
+	call IsKeyPressed
+	cmp  al,  false
+	je   %%skip_action
+		mov  rdi, %3
+		call %2
+	%%skip_action:
+%endmacro
 
-func(static, add_water)
-	lea rdi, [particles]
-	mov ecx, uint32_p [simulation_width]
-	.loop_:
-		rdrand eax
-		jnc    .loop_
-		and    al, 1
-		jz     .skip_water
-			mov uint8_p [rdi + Particle.type], PARTICLE_WATER
-		.skip_water:
-		add  rdi, sizeof(Particle)
-		loop .loop_
-	ret
+%define add_key_pressed_action(key, func, arg1) add_key_pressed_action_base key, func, arg1
 
 func(static, update_game)
 	sub rsp, 8
 
-	mov  rdi, MOUSE_BUTTON_LEFT
-	call IsMouseButtonPressed
-	cmp  al,  false
-	je   .skip_add_sand
-		call add_sand
-	.skip_add_sand:
+	add_key_pressed_action(KEY_KP_1, set_brush_type, BRUSH_DIAMOND)
+	add_key_pressed_action(KEY_KP_2, set_brush_type, BRUSH_SQUARE)
 
-	mov  rdi, MOUSE_BUTTON_RIGHT
-	call IsMouseButtonPressed
-	cmp  al,  false
-	je   .skip_add_water
-		call add_water
-	.skip_add_water:
+	add_key_pressed_action(KEY_KP_4, set_brush_particle_type, PARTICLE_SAND)
+	add_key_pressed_action(KEY_KP_5, set_brush_particle_type, PARTICLE_WATER)
 
-	mov  rdi, KEY_SPACE
-	call IsKeyDown
-	cmp  al,  false
-	je   .skip_place_sand
-		push r12
-		sub  rsp, 8
-		call GetMouseX
-		mov  r12, rax
-		call GetMouseY
-		mov  rdi, r12
-		mov  rsi, rax
-		call get_screen_to_particle_pos
-		add  rsp, 8
-		pop  r12
-
-		mov  rax, rdi
-		mov  rax, SIM_PARTICLES_WIDTH
-		mul  rdx
-		add  rdi, rax
-		mov  rsi, PARTICLE_SAND
-		call place_particle
-		
-	.skip_place_sand:
-
-
+	call update_brush
 	call update_simulation
 
 	add rsp, 8
@@ -117,6 +69,15 @@ func(global, _start)
 
 	call init_simulation
 	call gen_walls
+
+	mov  rdi, 3
+	call set_brush_size
+	
+	mov  rdi, BRUSH_DIAMOND
+	call set_brush_type
+
+	mov  rdi, PARTICLE_SAND
+	call set_brush_particle_type
 
 	.game_loop:
 		call WindowShouldClose
