@@ -35,6 +35,10 @@ extern set_brush_particle_type
 ; void init_brush(void);
 extern init_brush
 
+; Frees the states initialized by 'init_brush'
+; void free_brush(void);
+extern free_brush
+
 ; void update_brush(void);
 extern update_brush
 

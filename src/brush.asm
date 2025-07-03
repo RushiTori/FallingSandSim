@@ -271,6 +271,20 @@ func(global, init_brush)
 	add    rsp,         8 + 32
 	ret
 
+; Frees the states initialized by 'init_brush'
+; void free_brush(void);
+func(global, free_brush)
+	sub rsp, 24
+
+	mov    eax,         dword [ghost_tex]
+	movups xmm0,        [ghost_tex + 4]
+	mov    dword [rsp], eax
+	movups [rsp + 4],   xmm0
+	call   UnloadTexture
+
+	add rsp, 24
+	ret
+
 ; void update_brush(void);
 func(global, update_brush)
 	mov    uint64_p [ghost_start_x], SIM_PARTICLES_WIDTH

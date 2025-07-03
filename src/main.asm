@@ -73,15 +73,6 @@ func(global, _start)
 	call init_brush
 	call gen_walls
 
-	mov  rdi, 3
-	call set_brush_size
-	
-	mov  rdi, BRUSH_DIAMOND
-	call set_brush_type
-
-	mov  rdi, PARTICLE_SAND
-	call set_brush_particle_type
-
 	.game_loop:
 		call WindowShouldClose
 		cmp  al, true
@@ -94,6 +85,7 @@ func(global, _start)
 	.end_game_loop:
 
 	call free_simulation
+	call free_brush
 	call CloseWindow
 
 	mov rax, SYSCALL_EXIT
