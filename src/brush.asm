@@ -143,8 +143,10 @@ func(static, place_ghosts)
 
 	ret
 
-; void add_shape_diamond(uint64_t cx, uint64_t cy, uint8_t type);
+; void add_shape_diamond(uint64_t cx, uint64_t cy);
 func(static, add_shape_diamond)
+	xor  rdx, rdx
+	mov  dl,  uint8_p [brush_particle_type]
 	call add_ghost
 
 	mov ecx, uint32_p [brush_size]
@@ -197,8 +199,10 @@ func(static, add_shape_diamond)
 	.end:
 	ret
 
-; void add_shape_square(uint64_t cx, uint64_t cy, uint8_t type);
+; void add_shape_square(uint64_t cx, uint64_t cy);
 func(static, add_shape_square)
+	xor  rdx, rdx
+	mov  dl,  uint8_p [brush_particle_type]
 	call add_ghost
 
 	mov ecx, uint32_p [brush_size]
@@ -298,26 +302,56 @@ func(global, update_brush)
 		movups [rdi], xmm0
 		add    rdi,   16
 		loop   .res_loop
-	
-	sub  rsp,            8
-	call GetMouseX
-	mov  uint64_p [rsp], rax
-	call GetMouseY
-	pop  rdi
-	mov  rsi,            rax
-	sub  rsp,            8
-	call get_screen_to_particle_pos
-	mov  rdi,            rax
-	mov  rsi,            rdx
 
-	xor rdx, rdx
-	mov dl,  uint8_p [brush_particle_type]
+	sub rsp, 8 + 16
 
-	xor  rax, rax
-	mov  al,  uint8_p [brush_type]
-	shl  rax, 3
-	mov  rax, pointer_p [brush_call_table + rax]
-	call rax
+	call GetMousePosition
+	movq vector2_p [rsp], xmm0
+
+	call  GetMouseDelta
+	movq  xmm1, vector2_p [rsp]
+	subps xmm1, xmm0
+
+%macro simple_limit_base 2
+	xor    rax, rax
+	cmp    %1,  rax
+	cmovle %1,  rax
+	mov    rax, %2
+	cmp    %1,  rax
+	cmovge %1,  rax
+%endmacro
+
+%define simple_limit(reg, max) simple_limit_base reg, max
+
+	cvtss2si          rdi, xmm1
+	shufps xmm1, xmm1, 1
+	cvtss2si          rsi, xmm1
+	simple_limit(rdi, SIM_PARTICLES_WIDTH)
+	simple_limit(rsi, SIM_PARTICLES_HEIGHT)
+	call              get_screen_to_particle_pos
+
+	movq xmm1,                              vector2_p [rsp]
+	mov  uint64_p [rsp],                    rax
+	mov  uint64_p [rsp + sizeof(uint64_s)], rdx
+
+	cvtss2si          rdi, xmm1
+	shufps xmm1, xmm1, 1
+	cvtss2si          rsi, xmm1
+	simple_limit(rdi, SIM_PARTICLES_WIDTH)
+	simple_limit(rsi, SIM_PARTICLES_HEIGHT)
+	call              get_screen_to_particle_pos
+
+	mov rdi, uint64_p [rsp]
+	mov rsi, uint64_p [rsp + sizeof(uint64_s)]
+	mov rcx, rdx
+	mov rdx, rax
+
+	xor r8,  r8
+	mov r8b, uint8_p [brush_type]
+	shl r8,  3
+	mov r8,  pointer_p [brush_call_table + r8]
+
+	call run_line_algo
 
 	mov  rdi, MOUSE_BUTTON_LEFT
 	call IsMouseButtonDown
@@ -326,7 +360,7 @@ func(global, update_brush)
 		call place_ghosts
 	.skip_place:
 
-	add rsp, 8
+	add rsp, 8 + 16
 
 	ret
 

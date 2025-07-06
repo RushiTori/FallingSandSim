@@ -2,6 +2,7 @@
 %define BRUSH_INC
 
 %include "simulation.inc"
+%include "line_algo.inc"
 
 ; enum BrushType
 
