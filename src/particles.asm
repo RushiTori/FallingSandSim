@@ -3,6 +3,8 @@ default rel
 
 %include "particles.inc"
 
+extern  rand
+
 section .bss
 
 particles:
@@ -122,10 +124,19 @@ func(static, update_sand)
 	je  .skip_down_left
 
 	.gen_rand:
-		rdrand ax
-		jnc    .gen_rand
-		and    al, 1
-		jz     .skip_down_left
+		push rdi
+		push rsi
+		push rdx
+		push rcx
+		push r8
+		call rand
+		pop  r8
+		pop  rcx
+		pop  rdx
+		pop  rsi
+		pop  rdi
+		and  al, 1
+		jz   .skip_down_left
 
 	dec  rdi
 	dec  r8
@@ -197,10 +208,19 @@ func(static, update_water)
 	je  .skip_left
 
 	.gen_rand:
-		rdrand ax
-		jnc    .gen_rand
-		and    al, 1
-		jz     .skip_left
+		push rdi
+		push rsi
+		push rdx
+		push rcx
+		push r8
+		call rand
+		pop  r8
+		pop  rcx
+		pop  rdx
+		pop  rsi
+		pop  rdi
+		and  al, 1
+		jz   .skip_left
 
 	dec  rdi
 	dec  r8
