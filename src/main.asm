@@ -60,6 +60,10 @@ func(static, render_game)
 	
 	call render_brush
 
+	xor  rdi, rdi
+	xor  rsi, rsi
+	call DrawFPS
+
 	call EndDrawing
 
 	add rsp, 8
