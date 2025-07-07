@@ -402,22 +402,22 @@ func(global, update_brush)
 	movq  xmm1, vector2_p [rsp]
 	subps xmm1, xmm0
 
-%macro simple_limit_base 2
-	xor    rax, rax
-	cmp    %1,  rax
-	cmovle %1,  rax
-	mov    rax, %2
-	cmp    %1,  rax
-	cmovge %1,  rax
-%endmacro
+	%macro simple_limit_base 2
+		xor    rax, rax
+		cmp    %1,  rax
+		cmovle %1,  rax
+		mov    rax, %2
+		cmp    %1,  rax
+		cmovge %1,  rax
+	%endmacro
 
-%define simple_limit(reg, max) simple_limit_base reg, max
+	%define simple_limit(reg, max) simple_limit_base reg, max
 
 	cvtss2si          rdi, xmm1
 	shufps xmm1, xmm1, 1
 	cvtss2si          rsi, xmm1
-	simple_limit(rdi, SIM_PARTICLES_WIDTH)
-	simple_limit(rsi, SIM_PARTICLES_HEIGHT)
+	simple_limit(rdi, 1920)
+	simple_limit(rsi, 1080)
 	call              get_screen_to_particle_pos
 
 	movq xmm1,                              vector2_p [rsp]
@@ -427,8 +427,8 @@ func(global, update_brush)
 	cvtss2si          rdi, xmm1
 	shufps xmm1, xmm1, 1
 	cvtss2si          rsi, xmm1
-	simple_limit(rdi, SIM_PARTICLES_WIDTH)
-	simple_limit(rsi, SIM_PARTICLES_HEIGHT)
+	simple_limit(rdi, 1920)
+	simple_limit(rsi, 1080)
 	call              get_screen_to_particle_pos
 
 	mov rdi, uint64_p [rsp]
