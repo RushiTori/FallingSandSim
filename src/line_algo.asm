@@ -87,6 +87,13 @@ func(static, line_left_to_right)
 		cmp al, false
 		je  end_line_algo
 
+		inc r12
+		cmp r12, rbx
+		jle .skip_end
+			dec r12
+			jmp end_line_algo
+		.skip_end:
+
 		cmp r11, 0
 		jl  .skip_update_y
 			add r13, rbp
@@ -94,11 +101,7 @@ func(static, line_left_to_right)
 		.skip_update_y:
 		add r11, r15
 
-		inc r12
-		cmp r12, rbx
-		jle .algo_loop
-
-	jmp end_line_algo
+		jmp .algo_loop
 
 func(static, line_right_to_left)
 	.algo_loop:
@@ -115,6 +118,13 @@ func(static, line_right_to_left)
 		cmp al, false
 		je  end_line_algo
 
+		dec r12
+		cmp r12, rbx
+		jge .skip_end
+			inc r12
+			jmp end_line_algo
+		.skip_end:
+
 		cmp r11, 0
 		jl  .skip_update_y
 			add r13, rbp
@@ -122,11 +132,7 @@ func(static, line_right_to_left)
 		.skip_update_y:
 		add r11, r15
 
-		dec r12
-		cmp r12, rbx
-		jge .algo_loop
-
-	jmp end_line_algo
+		jmp .algo_loop
 
 func(static, line_algo_vertical)
 	cmp rdi, rdx
@@ -159,6 +165,13 @@ func(static, line_up_to_down)
 		cmp al, false
 		je  end_line_algo
 
+		inc r13
+		cmp r13, rbx
+		jle .skip_end
+			dec r13
+			jmp end_line_algo
+		.skip_end:
+
 		cmp r11, 0
 		jl  .skip_update_x
 			add r12, rbp
@@ -166,11 +179,7 @@ func(static, line_up_to_down)
 		.skip_update_x:
 		add r11, r14
 
-		inc r13
-		cmp r13, rbx
-		jle .algo_loop
-
-	jmp end_line_algo
+		jmp .algo_loop
 
 func(static, line_down_to_up)
 	.algo_loop:
@@ -187,6 +196,13 @@ func(static, line_down_to_up)
 		cmp al, false
 		je  end_line_algo
 
+		dec r13
+		cmp r13, rbx
+		jge .skip_end
+			inc r13
+			jmp end_line_algo
+		.skip_end:
+
 		cmp r11, 0
 		jl  .skip_update_x
 			add r12, rbp
@@ -194,8 +210,4 @@ func(static, line_down_to_up)
 		.skip_update_x:
 		add r11, r14
 
-		dec r13
-		cmp r13, rbx
-		jge .algo_loop
-
-	jmp end_line_algo
+		jmp .algo_loop
