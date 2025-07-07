@@ -41,7 +41,7 @@ brush_call_table:
 static brush_call_table: data
 	dq add_shape_diamond ; BRUSH_DIAMOND
 	dq add_shape_square  ; BRUSH_SQUARE
-	dq add_ghost         ; BRUSH_CIRCLE
+	dq add_shape_circle  ; BRUSH_CIRCLE
 	dq add_ghost         ; BRUSH_SELECTION
 	dq add_ghost         ; BRUSH_BUCKET
 	dq add_ghost         ; BRUSH_TYPE_COUNT
@@ -143,7 +143,7 @@ func(static, place_ghosts)
 
 	ret
 
-; void add_shape_diamond(uint64_t cx, uint64_t cy);
+; bool add_shape_diamond(uint64_t cx, uint64_t cy);
 func(static, add_shape_diamond)
 	xor  rdx, rdx
 	mov  dl,  uint8_p [brush_particle_type]
@@ -197,9 +197,10 @@ func(static, add_shape_diamond)
 		jle .loop_y
 
 	.end:
+	mov rax, true
 	ret
 
-; void add_shape_square(uint64_t cx, uint64_t cy);
+; bool add_shape_square(uint64_t cx, uint64_t cy);
 func(static, add_shape_square)
 	xor  rdx, rdx
 	mov  dl,  uint8_p [brush_particle_type]
@@ -236,6 +237,95 @@ func(static, add_shape_square)
 		jle .loop_y
 
 	.end:
+	mov rax, true
+	ret
+
+; Bresenham's Midpoint algorithm
+; Source : https://www.youtube.com/watch?v=hpiILbMkF9w
+; bool add_shape_circle(uint64_t cx, uint64_t cy);
+func(static, add_shape_circle)
+	xor  rdx, rdx
+	mov  dl,  uint8_p [brush_particle_type]
+	call add_ghost
+
+	mov ecx, uint32_p [brush_size]
+	cmp ecx, 0
+	je  .end
+
+	mov r8, rdi ; cx
+	mov r9, rsi ; cy
+	neg rcx     ; p = -r
+
+	xor rdi, rdi ; x = 0
+	mov rsi, rcx ; y = -r
+	.circle_loop:
+		cmp rcx, 0
+		jle .skip_inc_y
+
+		inc rsi      ; y++
+		add rcx, rsi ; p += y*2
+		add rcx, rsi
+		.skip_inc_y:
+
+		add rcx, rdi ; p += x*2
+		add rcx, rdi
+
+		inc rcx ; p++
+
+		%macro circle_line_loop_base 0
+			mov r10, rdi
+			neg rdi
+			add rdi, r8
+			add r10, r8
+			%%loop_:
+				call add_ghost
+				inc  rdi
+				cmp  rdi, r10
+				jle  %%loop_
+			mov rdi, r10
+			sub rdi, r8
+		%endmacro
+
+		%define circle_line_loop() circle_line_loop_base
+
+		add rsi, r9 ; y + cy
+		circle_line_loop()
+
+		sub rsi, r9 ; y
+		neg rsi     ; -y
+		add rsi, r9 ; cy - y
+		circle_line_loop()
+
+		sub rsi, r9 ; -y
+		neg rsi     ; y
+
+		xchg rdi, rsi ; swap x and y
+		neg  rdi      ; -y because y is negative but 'x' should be positive
+
+		add rsi, r9 ; x + cy
+		circle_line_loop()
+
+		sub rsi, r9 ; x
+		neg rsi     ; -x
+		add rsi, r9 ; cy - x
+		circle_line_loop()
+
+		sub rsi, r9 ; -x
+		neg rsi     ; x
+
+		neg  rdi      ; y
+		xchg rdi, rsi ; swap x and y again
+
+		neg rsi      ; -y
+		cmp rdi, rsi
+		jge .end     ; if x >= -y : return
+
+		neg rsi          ; y
+		inc rdi          ; x++
+		jmp .circle_loop
+
+	.end:
+	mov rax, true
 	ret
 
 ; uint32_t get_brush_size(void);
