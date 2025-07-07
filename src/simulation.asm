@@ -67,6 +67,8 @@ func(global, free_simulation)
 	add rsp, 24
 	ret
 
+extern       rand
+
 ; Updates the simulation
 ; void update_simulation(void);
 func(global, update_simulation)
@@ -89,28 +91,56 @@ func(global, update_simulation)
 
 	mov r14, r15
 	.update_loop_y:
-		dec r14
-		xor r12, r12
-		.update_loop_x:
-			mov  rdi, r12
-			mov  rsi, r14
-			mov  rdx, r13
-			mov  rcx, r15
-			mov  r8,  rbx
-			call get_particle_type
+		dec  r14
+		call rand
+		and  al, 1
+		je   .loop_right_to_left
 
-			lea  r9,  [particle_update_calls]
-			shl  rax, 3
-			add  r9,  rax
-			call pointer_p [r9]
+		.loop_left_to_right:
+			xor r12, r12
+			.update_loop_x_left_to_right:
+				mov  rdi, r12
+				mov  rsi, r14
+				mov  rdx, r13
+				mov  rcx, r15
+				mov  r8,  rbx
+				call get_particle_type
 
-			inc rbx
-			inc r12
-			cmp r12, r13
-			jb  .update_loop_x
-		sub rbx, r13
+				lea  r9,  [particle_update_calls]
+				shl  rax, 3
+				add  r9,  rax
+				call pointer_p [r9]
+
+				inc rbx
+				inc r12
+				cmp r12, r13
+				jb  .update_loop_x_left_to_right
+			sub rbx, r13
+			jmp .end_loop_x
+
+		.loop_right_to_left:
+			mov r12, r13
+			dec r12
+			add rbx, r13
+			.update_loop_x_right_to_left:
+				mov  rdi, r12
+				mov  rsi, r14
+				mov  rdx, r13
+				mov  rcx, r15
+				mov  r8,  rbx
+				call get_particle_type
+
+				lea  r9,  [particle_update_calls]
+				shl  rax, 3
+				add  r9,  rax
+				call pointer_p [r9]
+
+				dec rbx
+				dec r12
+				jge .update_loop_x_right_to_left
+
+		.end_loop_x:
 		sub rbx, SIM_PIXELS_WIDTH
-
 		cmp r14, 0
 		jnz .update_loop_y
 
