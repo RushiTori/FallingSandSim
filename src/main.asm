@@ -1,24 +1,9 @@
-bits         64
-default      rel
+bits    64
+default rel
 
 %include "main.inc"
 
-section      .text
-
-func(static, gen_walls)
-	lea rdi, [particles]
-	mov rcx, SIM_PARTICLES_WIDTH * 100
-
-	.pixels_loop:
-		rdrand ax
-		jnc    .pixels_loop
-		cmp    ax, 0x1000
-		ja     .skip_wall
-			mov uint8_p [rdi + Particle.type], PARTICLE_SOLID_WALL
-		.skip_wall:
-		add  rdi, sizeof(Particle)
-		loop .pixels_loop
-	ret
+section .text
 
 %macro add_key_pressed_action_base 3
 	mov  rdi, %1
@@ -39,8 +24,10 @@ func(static, update_game)
 	add_key_pressed_action(KEY_KP_2, set_brush_type, BRUSH_SQUARE)
 	add_key_pressed_action(KEY_KP_3, set_brush_type, BRUSH_CIRCLE)
 
+	add_key_pressed_action(KEY_KP_0, set_brush_particle_type, PARTICLE_EMPTY)
 	add_key_pressed_action(KEY_KP_4, set_brush_particle_type, PARTICLE_SAND)
 	add_key_pressed_action(KEY_KP_5, set_brush_particle_type, PARTICLE_WATER)
+	add_key_pressed_action(KEY_KP_6, set_brush_particle_type, PARTICLE_SOLID_WALL)
 
 	call update_brush
 	call update_simulation
@@ -76,7 +63,6 @@ func(global, _start)
 
 	call init_simulation
 	call init_brush
-	call gen_walls
 
 	.game_loop:
 		call WindowShouldClose
