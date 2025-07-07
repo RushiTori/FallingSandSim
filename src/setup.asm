@@ -3,6 +3,9 @@ default      rel
 
 %include "setup.inc"
 
+extern       time
+extern       srand
+
 section      .rodata
 
 string(static, title_str, "ASM Raylib - Falling Sand !", 0)
@@ -37,6 +40,11 @@ func(static, setup_raylib)
 ; void setup_program(uint64_t argc, char** argv);
 func(global, setup_program)
 	sub rsp, 8
+
+	xor  rdi, rdi
+	call time
+	mov  rdi, rax
+	call srand
 
 	call handle_args
 
