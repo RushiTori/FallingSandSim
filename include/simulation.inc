@@ -7,11 +7,11 @@ SIM_PIXELS_WIDTH  equ SIM_PARTICLES_WIDTH
 SIM_PIXELS_HEIGHT equ SIM_PARTICLES_HEIGHT
 SIM_PIXELS_COUNT  equ (SIM_PIXELS_WIDTH*SIM_PIXELS_HEIGHT)
 
-; Width of the simulation (default=100)
+; Width of the simulation (default=200)
 ; uint32_t simulation_width;
 extern simulation_width
 
-; Height of the simulation (default=100)
+; Height of the simulation (default=200)
 ; uint32_t simulation_height;
 extern simulation_height
 

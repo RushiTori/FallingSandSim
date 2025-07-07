@@ -5,11 +5,11 @@ default rel
 
 section .data
 
-; Width of the simulation (default=100)
+; Width of the simulation (default=200)
 ; uint32_t simulation_width;
 var(global, uint32_t, simulation_width, 200)
 
-; Height of the simulation (default=100)
+; Height of the simulation (default=200)
 ; uint32_t simulation_height;
 var(global, uint32_t, simulation_height, 200)
 
