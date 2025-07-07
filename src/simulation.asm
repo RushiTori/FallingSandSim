@@ -3,19 +3,15 @@ default rel
 
 %include "simulation.inc"
 
-SIM_PIXELS_WIDTH  equ 1920
-SIM_PIXELS_HEIGHT equ 1080
-SIM_PIXELS_LEN    equ (SIM_PIXELS_WIDTH*SIM_PIXELS_HEIGHT)
-
 section .data
 
 ; Width of the simulation (default=100)
 ; uint32_t simulation_width;
-var(global, uint32_t, simulation_width, 100)
+var(global, uint32_t, simulation_width, 200)
 
 ; Height of the simulation (default=100)
 ; uint32_t simulation_height;
-var(global, uint32_t, simulation_height, 100)
+var(global, uint32_t, simulation_height, 200)
 
 section .rodata
 
@@ -32,8 +28,8 @@ static  sim_pixels_img: data
 section .bss
 
 ; Pixel array of the simulation
-; Color simulation_pixels[SIM_PIXELS_WIDTH*SIM_PIXELS_HEIGHT];
-res_array(global, color_t, simulation_pixels, SIM_PIXELS_LEN)
+; Color simulation_pixels[SIM_PIXELS_COUNT];
+res_array(global, color_t, simulation_pixels, SIM_PIXELS_COUNT)
 
 sim_pixels_tex:
 static  sim_pixels_tex: data

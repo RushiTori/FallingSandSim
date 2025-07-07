@@ -3,8 +3,9 @@
 
 %include "particles.inc"
 
-SIM_PIXELS_WIDTH  equ 1920
-SIM_PIXELS_HEIGHT equ 1080
+SIM_PIXELS_WIDTH  equ SIM_PARTICLES_WIDTH
+SIM_PIXELS_HEIGHT equ SIM_PARTICLES_HEIGHT
+SIM_PIXELS_COUNT  equ (SIM_PIXELS_WIDTH*SIM_PIXELS_HEIGHT)
 
 ; Width of the simulation (default=100)
 ; uint32_t simulation_width;
@@ -15,7 +16,7 @@ extern simulation_width
 extern simulation_height
 
 ; Pixel array of the simulation
-; Color simulation_pixels[SIM_PIXELS_WIDTH*SIM_PIXELS_HEIGHT];
+; Color simulation_pixels[SIM_PIXELS_COUNT];
 extern simulation_pixels
 
 ; Initializes some simulation's states
