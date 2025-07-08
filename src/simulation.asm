@@ -122,6 +122,7 @@ func(global, update_simulation)
 			mov r12, r13
 			dec r12
 			add rbx, r13
+			dec rbx
 			.update_loop_x_right_to_left:
 				mov  rdi, r12
 				mov  rsi, r14
@@ -137,7 +138,9 @@ func(global, update_simulation)
 
 				dec rbx
 				dec r12
+				cmp r12, 0
 				jge .update_loop_x_right_to_left
+			inc rbx
 
 		.end_loop_x:
 		sub rbx, SIM_PIXELS_WIDTH
