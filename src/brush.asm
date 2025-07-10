@@ -66,6 +66,9 @@ res(static,  uint32_t, brush_size)
 res(static,  uint8_t,  brush_type)
 res(static,  uint8_t,  brush_particle_type)
 
+res(static,  uint64_t, selectX)
+res(static,  uint64_t, selectY)
+
 section      .text
 
 ; void add_ghost(uint64_t x, uint64_t y, uint8_t type);
@@ -379,20 +382,7 @@ func(global, free_brush)
 	add rsp, 24
 	ret
 
-; void update_brush(void);
-func(global, update_brush)
-	mov    uint64_p [ghost_start_x], SIM_PARTICLES_WIDTH
-	mov    uint64_p [ghost_start_y], SIM_PARTICLES_HEIGHT
-	mov    uint64_p [ghost_end_x],   0
-	mov    uint64_p [ghost_end_y],   0
-	lea    rdi,                      [ghost_particles]
-	movups xmm0,                     [memset_pattern]
-	mov    rcx,                      SIM_PARTICLES_COUNT / 16
-	.res_loop:
-		movups [rdi], xmm0
-		add    rdi,   16
-		loop   .res_loop
-
+func(static, update_brush_simple)
 	sub rsp, 8 + 16
 
 	call GetMousePosition
@@ -451,6 +441,123 @@ func(global, update_brush)
 	.skip_place:
 
 	add rsp, 8 + 16
+	ret
+
+; if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT) && !IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+;	selectXY = get_screen_to_particle_pos(GetMouseX(), GetMouseY())
+; }
+;
+; add_ghost_rect(GetMouseX(), GetMouseY(), selectX, selectY, brush_type);
+;
+; if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+;   place_ghosts();
+; }
+func(static, update_brush_selection)
+	sub rsp, 24
+
+	call GetMouseX
+	mov  uint64_p [rsp], rax
+	call GetMouseY
+
+	mov rdi, uint64_p [rsp]
+	mov rsi, rax
+
+	xor   rax, rax
+	cmp   rdi, rax
+	cmovl rdi, rax
+	cmp   rsi, rax
+	cmovl rsi, rax
+
+	mov   rax, SIM_PIXELS_WIDTH
+	cmp   rdi, rax
+	cmovg rdi, rax
+
+	mov   rax, SIM_PIXELS_HEIGHT
+	cmp   rsi, rax
+	cmovg rsi, rax
+	
+
+	call get_screen_to_particle_pos
+	mov  uint64_p [rsp],                    rax
+	mov  uint64_p [rsp + sizeof(uint64_s)], rdx
+
+	mov  rdi, MOUSE_BUTTON_LEFT
+	call IsMouseButtonDown
+	cmp  al,  false
+	jne  .skip_set_select
+
+	mov  rdi, MOUSE_BUTTON_LEFT
+	call IsMouseButtonReleased
+	cmp  al,  false
+	jne  .skip_set_select
+
+		mov rax,                uint64_p [rsp]
+		mov uint64_p [selectX], rax
+
+		mov rax,                uint64_p [rsp + sizeof(uint64_s)]
+		mov uint64_p [selectY], rax
+
+	.skip_set_select:
+
+	mov dl, uint8_p [brush_particle_type]
+
+	mov   rdi, uint64_p [rsp]
+	mov   r8,  uint64_p [selectX]
+	mov   r10, rdi
+	cmp   rdi, r8
+	cmovg rdi, r8
+	cmp   r8,  r10
+	cmovl r8,  r10
+
+	mov   r9,  uint64_p [selectY]
+	mov   rsi, uint64_p [rsp + sizeof(uint64_s)]
+	mov   r10, rsi
+	cmp   rsi, r9
+	cmovg rsi, r9
+	cmp   r9,  r10
+	cmovl r9,  r10
+
+	mov r10, rdi
+
+	.loop_y:
+		.loop_x:
+			call add_ghost
+			inc  rdi
+			cmp  rdi, r8
+			jle  .loop_x
+		mov rdi, r10
+		inc rsi
+		cmp rsi, r9
+		jle .loop_y
+	
+	mov  rdi, MOUSE_BUTTON_LEFT
+	call IsMouseButtonReleased
+	cmp  al,  false
+	je   .end
+
+	call place_ghosts
+
+	.end:
+	add rsp, 24
+	ret
+
+; void update_brush(void);
+func(global, update_brush)
+	mov    uint64_p [ghost_start_x], SIM_PARTICLES_WIDTH
+	mov    uint64_p [ghost_start_y], SIM_PARTICLES_HEIGHT
+	mov    uint64_p [ghost_end_x],   0
+	mov    uint64_p [ghost_end_y],   0
+	lea    rdi,                      [ghost_particles]
+	movups xmm0,                     [memset_pattern]
+	mov    rcx,                      SIM_PARTICLES_COUNT / 16
+	.res_loop:
+		movups [rdi], xmm0
+		add    rdi,   16
+		loop   .res_loop
+
+	cmp uint8_p [brush_type], BRUSH_SELECTION
+	jl  update_brush_simple
+	je  update_brush_selection
 
 	ret
 

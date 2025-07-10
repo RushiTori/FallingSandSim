@@ -23,6 +23,7 @@ func(static, update_game)
 	add_key_pressed_action(KEY_KP_1, set_brush_type, BRUSH_DIAMOND)
 	add_key_pressed_action(KEY_KP_2, set_brush_type, BRUSH_SQUARE)
 	add_key_pressed_action(KEY_KP_3, set_brush_type, BRUSH_CIRCLE)
+	add_key_pressed_action(KEY_KP_7, set_brush_type, BRUSH_SELECTION)
 
 	add_key_pressed_action(KEY_KP_0, set_brush_particle_type, PARTICLE_EMPTY)
 	add_key_pressed_action(KEY_KP_4, set_brush_particle_type, PARTICLE_SAND)
