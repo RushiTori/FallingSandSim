@@ -669,6 +669,23 @@ func(global, update_brush)
 		movups [rdi], xmm0
 		add    rdi,   16
 		loop   .res_loop
+	
+	sub      rsp, 8
+	call     GetMouseWheelMove
+	add      rsp, 8
+	cvtss2si rax, xmm0
+	add      al,  uint8_p [brush_size]
+
+	cmp rax, 0
+	jge .skip_clamp_0
+		mov rax, 0
+	.skip_clamp_0:
+	
+	cmp rax, 0xFF
+	jle .skip_clamp_ff
+		mov rax, 0xFF
+	.skip_clamp_ff:
+	mov uint8_p [brush_size], al
 
 	cmp uint8_p [brush_type], BRUSH_SELECTION
 	je  update_brush_selection
