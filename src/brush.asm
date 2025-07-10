@@ -541,6 +541,121 @@ func(static, update_brush_selection)
 	add rsp, 24
 	ret
 
+func(static, update_brush_bucket)
+	push rbp
+	mov  rbp, rsp
+	sub  rsp, 16
+
+	call GetMouseX
+	mov  uint64_p [rsp], rax
+	call GetMouseY
+
+	mov rdi, uint64_p [rsp]
+	mov rsi, rax
+
+	xor   rax, rax
+	cmp   rdi, rax
+	cmovl rdi, rax
+	cmp   rsi, rax
+	cmovl rsi, rax
+
+	mov   rax, SIM_PIXELS_WIDTH
+	cmp   rdi, rax
+	cmovg rdi, rax
+
+	mov   rax, SIM_PIXELS_HEIGHT
+	cmp   rsi, rax
+	cmovg rsi, rax
+
+	call get_screen_to_particle_pos
+	mov  uint64_p [rsp],                    rax
+	mov  uint64_p [rsp + sizeof(uint64_s)], rdx
+
+	mov rdi, rax
+	mov rsi, rdx
+
+	mov ecx, uint32_p [simulation_height]
+
+	mov r11, SIM_PARTICLES_WIDTH
+	mov rax, r11
+	mul rsi
+	add rax, rdi
+	mov r8,  rax
+
+	mov  edx,  uint32_p [simulation_width]
+	call get_particle_type
+	mov  r8,   rdx
+	mov  r9,   rcx
+	mov  r10b, al
+
+	mov  dl, uint8_p [brush_particle_type]
+	call add_ghost
+	mov  cl, dl
+
+	%macro bucket_attempt 0
+		mov rax, r11
+		mul rsi
+		add rax, rdi
+
+		cmp cl, uint8_p [ghost_particles + rax]
+		je  %%skip
+
+		cmp r10b, uint8_p [particles + rax * sizeof(Particle) + Particle.type]
+		jne %%skip
+			mov  dl, cl
+			call add_ghost
+			push rsi
+			push rdi
+		%%skip:
+	%endmacro
+
+	.bucket_loop:
+		pop rdi
+		pop rsi
+
+		dec rdi
+		cmp rdi, 0
+		jl  .skip_left
+			bucket_attempt
+		.skip_left:
+		inc rdi
+
+		inc rdi
+		cmp rdi, r8
+		jge .skip_right
+			bucket_attempt
+		.skip_right:
+		dec rdi
+
+		dec rsi
+		cmp rsi, 0
+		jl  .skip_up
+			bucket_attempt
+		.skip_up:
+		inc rsi
+
+		inc rsi
+		cmp rsi, r9
+		jge .skip_down
+			bucket_attempt
+		.skip_down:
+		dec rsi
+
+		cmp rsp, rbp
+		jne .bucket_loop
+
+	mov  rdi, MOUSE_BUTTON_LEFT
+	call IsMouseButtonDown
+	cmp  al,  false
+	je   .skip_place
+		call place_ghosts
+	.skip_place:
+
+	.end:
+	mov rsp, rbp
+	pop rbp
+	ret
+
 ; void update_brush(void);
 func(global, update_brush)
 	mov    uint64_p [ghost_start_x], SIM_PARTICLES_WIDTH
@@ -556,10 +671,9 @@ func(global, update_brush)
 		loop   .res_loop
 
 	cmp uint8_p [brush_type], BRUSH_SELECTION
-	jl  update_brush_simple
 	je  update_brush_selection
-
-	ret
+	jg  update_brush_bucket
+	jmp update_brush_simple
 
 ; void render_brush(void);
 func(global, render_brush)

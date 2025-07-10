@@ -13,13 +13,9 @@ TODO | Have a way to place particles and choose the type of what you place
 	(todo) Make the "brush" bigger/add a way to change brush size
 	(done) Add a ghost of the particles to-be-placed
 
-TODO | Add more brush types
+DONE | Add more brush types
 	(done) diamond
 	(done) square
 	(done) circle
 	(done) selection
-	(todo) bucket
-
-TODO | Add Save to file and Load from file
-
-TODO | Add a way to modify the color palette
+	(done) bucket
